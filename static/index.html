@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trie Grocery Search Demo</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <p class="eyebrow">INF1008 Assignment 2</p>
+        <h1>Trie-Powered Grocery Search</h1>
+        <p class="hero-copy">
+          Type a product name or alias to see how prefix search can power fast autocomplete.
+        </p>
+        <div class="metrics">
+          <article>
+            <span>Indexed Terms</span>
+            <strong id="indexed-terms">0</strong>
+          </article>
+          <article>
+            <span>Trie Nodes</span>
+            <strong id="total-nodes">0</strong>
+          </article>
+          <article>
+            <span>Node Visits</span>
+            <strong id="node-visits">0</strong>
+          </article>
+          <article>
+            <span>Candidates</span>
+            <strong id="candidate-count">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel controls">
+          <label>
+            <span>Search Products</span>
+            <input id="query-input" type="text" placeholder="Try yogurt, rice, choc..." autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Category</span>
+            <select id="category-select">
+              <option value="">All Categories</option>
+            </select>
+          </label>
+
+          <p id="summary" class="summary">Loading catalog...</p>
+        </div>
+
+        <div class="panel results-panel">
+          <div class="results-header">
+            <h2>Suggestions</h2>
+            <span id="result-count">0 results</span>
+          </div>
+          <div id="results" class="results"></div>
+        </div>
+
+        <aside class="panel detail-panel">
+          <h2>Product Details</h2>
+          <div id="details" class="details empty">
+            Select a suggestion to view its aisle, price, stock status, and aliases.
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
