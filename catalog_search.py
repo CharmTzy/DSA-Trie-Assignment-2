@@ -43,16 +43,20 @@ class CatalogSearch:
         self.products = products
         self.product_by_id = {product.product_id: product for product in products}
         self.categories = sorted({product.category for product in products})
-        self.trie = Trie()
+        self.title_trie = Trie()
+        self.title_alias_trie = Trie()
 
         for product in products:
-            self.trie.insert(product.name, product.product_id)
+            self.title_trie.insert(product.name, product.product_id)
+            self.title_alias_trie.insert(product.name, product.product_id)
             for alias in product.aliases:
-                self.trie.insert(alias, product.product_id)
+                self.title_alias_trie.insert(alias, product.product_id)
 
-    def search(self, query: str, category: str = "", limit: int = 8) -> dict:
+    def search(self, query: str, category: str = "", limit: int = 8, search_mode: str = "title_aliases") -> dict:
         normalized_category = category.strip()
-        trie_result = self.trie.search(query)
+        normalized_search_mode = self._normalize_search_mode(search_mode)
+        active_trie = self._get_trie(normalized_search_mode)
+        trie_result = active_trie.search(query)
 
         if trie_result.normalized_query:
             matched_products = [self.product_by_id[product_id] for product_id in trie_result.product_ids]
@@ -66,7 +70,7 @@ class CatalogSearch:
 
         sorted_products = sorted(
             matched_products,
-            key=lambda product: self._sort_key(product, trie_result.normalized_query),
+            key=lambda product: self._sort_key(product, trie_result.normalized_query, normalized_search_mode),
         )
 
         limited_products = sorted_products[: max(1, limit)]
@@ -75,6 +79,7 @@ class CatalogSearch:
             "query": query,
             "normalized_query": trie_result.normalized_query,
             "category_filter": normalized_category,
+            "search_mode": normalized_search_mode,
             "categories": self.categories,
             "results": [self._serialize_product(product) for product in limited_products],
             "result_count": len(limited_products),
@@ -82,26 +87,46 @@ class CatalogSearch:
             "metrics": {
                 "node_visits": trie_result.node_visits,
                 "candidate_count": trie_result.candidate_count if trie_result.normalized_query else len(matched_products),
-                "indexed_terms": self.trie.indexed_terms,
-                "total_nodes": self.trie.total_nodes,
+                "indexed_terms": active_trie.indexed_terms,
+                "total_nodes": active_trie.total_nodes,
             },
         }
 
-    def _sort_key(self, product: Product, normalized_query: str) -> tuple:
+    def _sort_key(self, product: Product, normalized_query: str, search_mode: str) -> tuple:
         name = normalize_text(product.name)
         aliases = [normalize_text(alias) for alias in product.aliases]
 
-        exact_match = normalized_query != "" and any(alias == normalized_query for alias in [name, *aliases])
-        name_starts = normalized_query != "" and name.startswith(normalized_query)
-        alias_starts = normalized_query != "" and any(alias.startswith(normalized_query) for alias in aliases)
-
-        return (
-            0 if exact_match else 1,
-            0 if name_starts else 1,
-            0 if alias_starts else 1,
-            -product.popularity,
-            product.name,
+        exact_title_match = normalized_query != "" and name == normalized_query
+        exact_alias_match = search_mode == "title_aliases" and normalized_query != "" and any(
+            alias == normalized_query for alias in aliases
         )
+        title_starts = normalized_query != "" and name.startswith(normalized_query)
+        alias_starts = search_mode == "title_aliases" and normalized_query != "" and any(
+            alias.startswith(normalized_query) for alias in aliases
+        )
+
+        if exact_title_match:
+            match_priority = 0
+        elif exact_alias_match:
+            match_priority = 1
+        elif title_starts:
+            match_priority = 2
+        elif alias_starts:
+            match_priority = 3
+        else:
+            match_priority = 4
+
+        return (match_priority, -product.popularity, product.name)
+
+    @staticmethod
+    def _normalize_search_mode(search_mode: str) -> str:
+        normalized = search_mode.strip().lower().replace("-", "_").replace(" ", "_")
+        return "title" if normalized == "title" else "title_aliases"
+
+    def _get_trie(self, search_mode: str) -> Trie:
+        if search_mode == "title":
+            return self.title_trie
+        return self.title_alias_trie
 
     @staticmethod
     def _serialize_product(product: Product) -> dict:

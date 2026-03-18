@@ -102,13 +102,13 @@ body {
 }
 
 .controls label,
-.controls input,
+.controls input[type="text"],
 .controls select {
   display: block;
   width: 100%;
 }
 
-.controls span {
+.controls .field-label {
   display: block;
   margin-bottom: 8px;
   font-weight: 700;
@@ -118,13 +118,95 @@ body {
   margin-top: 16px;
 }
 
-.controls input,
+.controls input[type="text"],
 .controls select {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 1rem;
   background: var(--surface-strong);
+}
+
+.toggle-group {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  background: var(--surface-strong);
+}
+
+.toggle-group .field-label {
+  margin-bottom: 12px;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.switch-copy {
+  flex: 1;
+}
+
+.switch-copy strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.switch-copy small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switch-slider {
+  position: relative;
+  width: 58px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(31, 27, 22, 0.16);
+  transition: background 120ms ease;
+}
+
+.switch-slider::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fffaf1;
+  box-shadow: 0 6px 16px rgba(31, 27, 22, 0.16);
+  transition: transform 120ms ease;
+}
+
+.switch input:checked + .switch-slider {
+  background: var(--accent);
+}
+
+.switch input:checked + .switch-slider::after {
+  transform: translateX(26px);
+}
+
+.switch input:focus-visible + .switch-slider {
+  outline: 3px solid rgba(29, 107, 79, 0.22);
+  outline-offset: 2px;
 }
 
 .summary {

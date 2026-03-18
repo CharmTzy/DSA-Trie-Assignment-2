@@ -31,11 +31,17 @@ class CatalogSearchTests(unittest.TestCase):
     def setUp(self) -> None:
         self.search_engine = CatalogSearch()
 
-    def test_alias_search_finds_matching_product(self) -> None:
-        payload = self.search_engine.search("yog")
+    def test_title_alias_mode_finds_matching_alias(self) -> None:
+        payload = self.search_engine.search("yog", search_mode="title_aliases")
         result_names = {product["name"] for product in payload["results"]}
 
         self.assertIn("Greek Yogurt Vanilla", result_names)
+
+    def test_title_mode_ignores_alias_only_match(self) -> None:
+        payload = self.search_engine.search("yog", search_mode="title")
+
+        self.assertEqual(payload["results"], [])
+        self.assertEqual(payload["search_mode"], "title")
 
     def test_category_filter_limits_results(self) -> None:
         payload = self.search_engine.search("", category="Snacks")

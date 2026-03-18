@@ -1,5 +1,7 @@
 const queryInput = document.getElementById("query-input");
 const categorySelect = document.getElementById("category-select");
+const aliasToggle = document.getElementById("alias-toggle");
+const searchModeValue = document.getElementById("search-mode-value");
 const summary = document.getElementById("summary");
 const resultsContainer = document.getElementById("results");
 const detailsContainer = document.getElementById("details");
@@ -15,6 +17,18 @@ const metrics = {
 let latestPayload = null;
 let selectedProductId = null;
 let debounceId = null;
+
+function getSearchMode() {
+  return aliasToggle.checked ? "title_aliases" : "title";
+}
+
+function describeSearchMode(searchMode) {
+  return searchMode === "title_aliases" ? "titles + aliases" : "titles only";
+}
+
+function updateSearchModeLabel() {
+  searchModeValue.textContent = aliasToggle.checked ? "Title + aliases" : "Title only";
+}
 
 function updateMetrics(payload) {
   metrics.indexedTerms.textContent = payload.metrics.indexed_terms;
@@ -64,19 +78,20 @@ function renderResults(payload) {
   latestPayload = payload;
   updateMetrics(payload);
   renderCategoryOptions(payload.categories);
+  const searchScope = describeSearchMode(payload.search_mode);
 
   resultCount.textContent = `${payload.total_matches} match${payload.total_matches === 1 ? "" : "es"}`;
 
   if (payload.total_matches === 0) {
     resultsContainer.innerHTML = '<p class="detail-row">No products matched that prefix.</p>';
     renderDetails(null);
-    summary.textContent = "No matches found. Try a different prefix or remove the category filter.";
+    summary.textContent = `No matches found in ${searchScope}. Try a different prefix or remove the category filter.`;
     return;
   }
 
   const label = payload.normalized_query
-    ? `Showing ${payload.result_count} of ${payload.total_matches} matches for "${payload.normalized_query}".`
-    : `Showing featured products from the catalog.`;
+    ? `Showing ${payload.result_count} of ${payload.total_matches} matches for "${payload.normalized_query}" in ${searchScope}.`
+    : `Showing featured products from the catalog in ${searchScope}.`;
   summary.textContent = label;
 
   resultsContainer.innerHTML = "";
@@ -124,6 +139,7 @@ async function fetchResults() {
   const params = new URLSearchParams({
     q: queryInput.value,
     category: categorySelect.value,
+    mode: getSearchMode(),
     limit: "8",
   });
 
@@ -144,7 +160,12 @@ function queueFetch() {
 
 queryInput.addEventListener("input", queueFetch);
 categorySelect.addEventListener("change", queueFetch);
+aliasToggle.addEventListener("change", () => {
+  updateSearchModeLabel();
+  queueFetch();
+});
 
+updateSearchModeLabel();
 fetchResults().catch(() => {
   summary.textContent = "Unable to load search results.";
 });

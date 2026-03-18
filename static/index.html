@@ -37,16 +37,30 @@
       <section class="workspace">
         <div class="panel controls">
           <label>
-            <span>Search Products</span>
+            <span class="field-label">Search Products</span>
             <input id="query-input" type="text" placeholder="Try yogurt, rice, choc..." autocomplete="off" />
           </label>
 
           <label>
-            <span>Category</span>
+            <span class="field-label">Category</span>
             <select id="category-select">
               <option value="">All Categories</option>
             </select>
           </label>
+
+          <div class="toggle-group">
+            <div class="field-label">Search Scope</div>
+            <label class="switch-row" for="alias-toggle">
+              <span class="switch-copy">
+                <strong id="search-mode-value">Title only</strong>
+                <small id="search-mode-help">Turn this on to also match aliases like "baby spinach".</small>
+              </span>
+              <span class="switch">
+                <input id="alias-toggle" type="checkbox" aria-describedby="search-mode-help" />
+                <span class="switch-slider" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
 
           <p id="summary" class="summary">Loading catalog...</p>
         </div>

@@ -47,6 +47,7 @@ def create_handler(search_engine: CatalogSearch, static_dir: Path):
             params = parse_qs(query_string)
             query = params.get("q", [""])[0]
             category = params.get("category", [""])[0]
+            search_mode = params.get("mode", ["title_aliases"])[0]
             limit_raw = params.get("limit", ["8"])[0]
 
             try:
@@ -54,7 +55,12 @@ def create_handler(search_engine: CatalogSearch, static_dir: Path):
             except ValueError:
                 limit = 8
 
-            payload = search_engine.search(query=query, category=category, limit=limit)
+            payload = search_engine.search(
+                query=query,
+                category=category,
+                limit=limit,
+                search_mode=search_mode,
+            )
             self._send_json(payload, HTTPStatus.OK)
 
         def _serve_static_file(self, file_path: Path) -> None:
